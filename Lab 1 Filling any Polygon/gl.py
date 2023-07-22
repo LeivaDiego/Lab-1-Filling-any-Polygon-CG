@@ -105,53 +105,60 @@ class Renderer(object):
 
                  limit += 1
 
-    def glPolygon(self, vertices):
-        for i in range(len(vertices)):
-            # Dibuja una l�nea desde el punto actual al siguiente
-            self.glLine(vertices[i], vertices[(i + 1) % len(vertices)])
+    """
+    Dibuja y rellena un polígono en la imagen.
+    Argumentos:
+        vertices: Una lista de objetos V2 que representan los vértices del polígono.
+        color: Un color opcional para el polígono. Si no se proporciona, se usa el color actual.
+    Referencia de: https://hackernoon.com/computer-graphics-scan-line-polygon-fill-algorithm-3cb47283df6 SCAN LINE
+    """
+    
+    def glPolygonFill(self, vertices, color=None):
+        #Verifica si no se proporciono un color, se usa el color actual
+        if color == None:
+            color = self.currColor
 
-    # Referencia de https://alienryderflex.com/polygon_fill/ metodo point in polygon 
-    def glFillPolygon(self,vertices,color):
-        top = 0
-        bottom = self.height
-        right = self.width
-        left = 0
-        pointX = []
+        # Se encuentra el punto Y mas minimo y maximo
+        minY = min(vertices, key=lambda x: x.y).y
+        maxY = max(vertices, key=lambda x: x.y).y
+    
+        # Recorre de forma vertical cada linea del poligono
+        for y in range(minY, maxY + 1):
+        
+            intersections = [] #almacena las intersecciones de esa linea horizontal con el poligono
 
-        #  Cicla por cada linea de pixeles en la imagen
-        for pixelY in range(top, bottom):
-            # Construye la lista de puntos
-            points = 0
-            j = len(vertices) - 1
-            for i in range(len(vertices)):
-                if ((vertices[i].y < pixelY and vertices[j].y >= pixelY)
-                or (vertices[j].y < pixelY and vertices[i].y >= pixelY)):
-                    points += 1
-                    pointX.append(int(vertices[i].x+(pixelY-vertices[i].y)/(vertices[j].y-vertices[i].y)*(vertices[j].x-vertices[i].x)))
-                j = i
-
-            #  Ordena los puntos con un Bubble sort
-            i = 0
-            while i < points-1:
-                if pointX[i] > pointX[i+1]:
-                    pointX[i], pointX[i+1] = pointX[i+1], pointX[i] # swap
-                    if i: 
-                        i -= 1
+            # Recorre cada tupla de vertices en el listado de vertices 
+            for point in range(len(vertices)):
+                v0 = vertices[point] #vertice actual
+                v1 = vertices[(point + 1) % len(vertices)]#el siguiente vertice
+                
+                #Aseguramos que el vertice actual este sobre el siguiente vertice
+                if v0.y < v1.y:
+                    low = v0
+                    high = v1
                 else:
-                    i += 1
+                    low = v1
+                    high = v0
+                
+                # Si la linea se cruza con un segmento de linea
+                if y >= low.y and y < high.y:
+                    
+                    #punto de interseccion en x
+                    t = (y - low.y) / (high.y - low.y) # la proporcion del camino a seguir
+                    x = low.x + t * (high.x - low.x) # Calcula la coordenada en x
+                    intersections.append(x)
 
-            #  Rellena los pixeles que estan entre el par de puntos
-            for i in range(0, points, 2):
-                if pointX[i] >= right:
-                    break
-                if pointX[i+1] > left:
-                    if pointX[i] < left:
-                        pointX[i] = left
-                    if pointX[i+1] > right:
-                        pointX[i+1] = right
-                    for pixelX in range(pointX[i], pointX[i+1]):
-                        self.glColor(*color)
-                        self.glPoint(pixelX, pixelY)
+            # Ordena las intersecciones
+            intersections.sort()
+            
+            # Dibuja los puntos entre la tupla de puntos de cada interseccion 
+            for point in range(0, len(intersections) - 1, 2):
+                x0 = int(intersections[point])
+                x1 = int(intersections[point + 1])
+
+                for x in range(x0, x1 + 1):
+                    self.glColor(*color)
+                    self.glPoint(x, y)
 
 
     def glFinish(self, filename):

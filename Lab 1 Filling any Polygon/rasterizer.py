@@ -1,9 +1,14 @@
+'''
+Autor: Diego Leiva
+Carne: 21752
+Version: 2.0
+Funcionalidad:  Dibuja y rellenar poligonos de mas de 4 vertices
+'''
+
 from gl import Renderer, V2
 
 width = 800
 height = 450
-polyColor = (1,1,1)
-bgColor = (0,0,0)
 
 rend = Renderer(width, height)
 
@@ -26,11 +31,11 @@ poli4 = [V2(413, 177), V2(448, 159), V2(502, 88), V2(553, 53), V2(535, 36),
 poli5 = ([V2(682, 175), V2(708, 120), V2(735, 148), V2(739, 170)])
 
 
-#Renderizado de poligonos
-rend.glFillPolygon(poli1,polyColor)
-rend.glFillPolygon(poli2,polyColor)
-rend.glFillPolygon(poli3,polyColor)
-rend.glFillPolygon(poli4,polyColor)
-rend.glFillPolygon(poli5,bgColor)
+rend.glPolygonFill(poli1,(1,1,0))
+rend.glPolygonFill(poli2,(0,1,1))
+rend.glPolygonFill(poli3,(0,1,0))
+rend.glPolygonFill(poli4,(0,0,1))
+rend.glPolygonFill(poli5,(0,0,0))
+
 
 rend.glFinish("output.bmp")
